@@ -1,20 +1,21 @@
-// --- Tabs ---
-document.querySelectorAll(".tab-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).classList.add("active");
+// --- Navegação lateral ---
+function switchView(view) {
+  document.querySelectorAll(".nav-item[data-view]").forEach((b) => {
+    b.classList.toggle("active", b.dataset.view === view);
   });
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+  document.getElementById(`view-${view}`).classList.add("active");
+
+  if (view === "listen-type" && currentListenId === null) loadListenChallenge();
+  if (view === "fill-blank" && currentFillId === null) loadFillChallenge();
+}
+
+document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
+  btn.addEventListener("click", () => switchView(btn.dataset.view));
 });
 
-document.querySelectorAll(".subtab-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".subtab-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".subtab-panel").forEach((p) => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.subtab).classList.add("active");
-  });
+document.querySelectorAll("[data-goto]").forEach((btn) => {
+  btn.addEventListener("click", () => switchView(btn.dataset.goto));
 });
 
 // --- Dicionário ---
@@ -30,6 +31,10 @@ async function loadWords(query) {
   const words = await res.json();
   wordsTbody.innerHTML = "";
   wordsEmpty.hidden = words.length > 0;
+
+  const statEl = document.getElementById("stat-word-count");
+  if (statEl && !query) statEl.textContent = words.length;
+
   for (const w of words) {
     const tr = document.createElement("tr");
 
@@ -179,6 +184,6 @@ fillForm.addEventListener("submit", async (e) => {
 fillNext.addEventListener("click", loadFillChallenge);
 
 // --- Init ---
+// A tela inicial é a de boas-vindas; os treinamentos carregam sob demanda
+// quando o usuário abre cada um pela primeira vez (ver switchView).
 loadWords();
-loadListenChallenge();
-loadFillChallenge();

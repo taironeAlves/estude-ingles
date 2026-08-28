@@ -7,64 +7,98 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>Estude Inglês</h1>
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="dicionario">Dicionário</button>
-      <button class="tab-btn" data-tab="treinamento">Treinamento</button>
-    </nav>
-  </header>
-
-  <main>
-    <!-- DICIONÁRIO -->
-    <section id="dicionario" class="tab-panel active">
-      <form id="word-form" class="card">
-        <h2>Adicionar palavra</h2>
-        <div class="field">
-          <label for="word-input">Palavra (inglês)</label>
-          <input id="word-input" type="text" required autocomplete="off" />
-        </div>
-        <div class="field">
-          <label for="translation-input">Tradução</label>
-          <input id="translation-input" type="text" required autocomplete="off" />
-        </div>
-        <div class="field">
-          <label for="example-input">Frase de exemplo (opcional, mas recomendada)</label>
-          <input id="example-input" type="text" placeholder="A frase deve conter a palavra" autocomplete="off" />
-        </div>
-        <button type="submit">Adicionar</button>
-        <p id="word-form-msg" class="msg"></p>
-      </form>
-
-      <div class="card">
-        <div class="list-header">
-          <h2>Palavras cadastradas</h2>
-          <input id="search-input" type="text" placeholder="Buscar..." />
-        </div>
-        <table id="words-table">
-          <thead>
-            <tr>
-              <th>Palavra</th>
-              <th>Tradução</th>
-              <th>Frase</th>
-              <th>Áudio</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="words-tbody"></tbody>
-        </table>
-        <p id="words-empty" class="msg" hidden>Nenhuma palavra cadastrada ainda.</p>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo">Estude Inglês</span>
       </div>
-    </section>
-
-    <!-- TREINAMENTO -->
-    <section id="treinamento" class="tab-panel">
-      <nav class="subtabs">
-        <button class="subtab-btn active" data-subtab="listen-type">Ouvir e digitar</button>
-        <button class="subtab-btn" data-subtab="fill-blank">Complete a frase</button>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="inicio">Início</button>
+        <button class="nav-item" data-view="dicionario">Dicionário</button>
+        <div class="nav-group">
+          <span class="nav-group-label">Treinamento</span>
+          <button class="nav-item nav-subitem" data-view="listen-type">Ouvir e digitar</button>
+          <button class="nav-item nav-subitem" data-view="fill-blank">Complete a frase</button>
+        </div>
       </nav>
+    </aside>
 
-      <div id="listen-type" class="subtab-panel active card">
+    <main class="content">
+      <!-- INÍCIO -->
+      <section id="view-inicio" class="view active">
+        <div class="welcome">
+          <h1>Bem-vindo(a) ao Estude Inglês</h1>
+          <p class="welcome-lead">
+            Seu dicionário pessoal de inglês, com áudio gerado automaticamente
+            para cada palavra e treinamentos para fixar o que você aprender.
+          </p>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-value" id="stat-word-count">—</span>
+              <span class="stat-label">palavras cadastradas</span>
+            </div>
+          </div>
+
+          <div class="welcome-actions">
+            <button class="primary-btn" data-goto="dicionario">Ir para o Dicionário</button>
+            <button class="secondary-btn" data-goto="listen-type">Começar um treinamento</button>
+          </div>
+
+          <div class="welcome-help">
+            <h2>Como funciona</h2>
+            <ul>
+              <li><strong>Dicionário</strong>: cadastre palavras em inglês com tradução e uma frase de exemplo. O áudio é gerado automaticamente.</li>
+              <li><strong>Ouvir e digitar</strong>: ouça o áudio de uma palavra e digite o que você ouviu.</li>
+              <li><strong>Complete a frase</strong>: veja uma frase de exemplo com a palavra oculta e descubra qual é.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- DICIONÁRIO -->
+      <section id="view-dicionario" class="view">
+        <form id="word-form" class="card">
+          <h2>Adicionar palavra</h2>
+          <div class="field">
+            <label for="word-input">Palavra (inglês)</label>
+            <input id="word-input" type="text" required autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="translation-input">Tradução</label>
+            <input id="translation-input" type="text" required autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="example-input">Frase de exemplo (opcional, mas recomendada)</label>
+            <input id="example-input" type="text" placeholder="A frase deve conter a palavra" autocomplete="off" />
+          </div>
+          <button type="submit">Adicionar</button>
+          <p id="word-form-msg" class="msg"></p>
+        </form>
+
+        <div class="card">
+          <div class="list-header">
+            <h2>Palavras cadastradas</h2>
+            <input id="search-input" type="text" placeholder="Buscar..." />
+          </div>
+          <table id="words-table">
+            <thead>
+              <tr>
+                <th>Palavra</th>
+                <th>Tradução</th>
+                <th>Frase</th>
+                <th>Áudio</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="words-tbody"></tbody>
+          </table>
+          <p id="words-empty" class="msg" hidden>Nenhuma palavra cadastrada ainda.</p>
+        </div>
+      </section>
+
+      <!-- TREINAMENTO: OUVIR E DIGITAR -->
+      <section id="view-listen-type" class="view card">
         <h2>Ouvir e digitar</h2>
         <p>Ouça o áudio e digite a palavra em inglês.</p>
         <audio id="listen-audio" controls></audio>
@@ -74,9 +108,10 @@
         </form>
         <p id="listen-feedback" class="feedback"></p>
         <button id="listen-next" type="button">Nova palavra</button>
-      </div>
+      </section>
 
-      <div id="fill-blank" class="subtab-panel card">
+      <!-- TREINAMENTO: COMPLETE A FRASE -->
+      <section id="view-fill-blank" class="view card">
         <h2>Complete a frase</h2>
         <p id="fill-sentence" class="sentence">Carregando...</p>
         <form id="fill-form" class="field">
@@ -85,9 +120,9 @@
         </form>
         <p id="fill-feedback" class="feedback"></p>
         <button id="fill-next" type="button">Nova frase</button>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
   <script src="/app.js"></script>
 </body>
