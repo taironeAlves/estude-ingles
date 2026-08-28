@@ -76,7 +76,7 @@
       <!-- DICIONÁRIO -->
       <section id="view-dicionario" class="view">
         <form id="word-form" class="card">
-          <h2>Adicionar palavra</h2>
+          <h2 id="word-form-title">Adicionar palavra</h2>
           <div class="field">
             <label for="word-input">Palavra (inglês)</label>
             <input id="word-input" type="text" required autocomplete="off" />
@@ -89,7 +89,10 @@
             <label for="example-input">Frase de exemplo (opcional, mas recomendada)</label>
             <input id="example-input" type="text" placeholder="A frase deve conter a palavra" autocomplete="off" />
           </div>
-          <button type="submit">Adicionar</button>
+          <div class="form-actions">
+            <button type="submit" id="word-form-submit">Adicionar</button>
+            <button type="button" id="word-form-cancel" class="secondary-btn" hidden>Cancelar edição</button>
+          </div>
           <p id="word-form-msg" class="msg"></p>
         </form>
 
@@ -105,7 +108,7 @@
                 <th>Tradução</th>
                 <th>Frase</th>
                 <th>Áudio</th>
-                <th></th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="words-tbody"></tbody>

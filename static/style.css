@@ -337,6 +337,23 @@ audio { width: 100%; margin: 0.75rem 0; }
 
 .msg { color: var(--muted); font-size: 0.85rem; }
 
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.edit-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
 .delete-btn {
   background: transparent;
   color: var(--err);

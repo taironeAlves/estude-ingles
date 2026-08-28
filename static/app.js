@@ -43,15 +43,46 @@ document.querySelectorAll("[data-goto]").forEach((btn) => {
 
 // --- Dicionário ---
 const wordForm = document.getElementById("word-form");
+const wordFormTitle = document.getElementById("word-form-title");
+const wordFormSubmit = document.getElementById("word-form-submit");
+const wordFormCancel = document.getElementById("word-form-cancel");
 const wordFormMsg = document.getElementById("word-form-msg");
+const wordInput = document.getElementById("word-input");
+const translationInput = document.getElementById("translation-input");
+const exampleInput = document.getElementById("example-input");
 const wordsTbody = document.getElementById("words-tbody");
 const wordsEmpty = document.getElementById("words-empty");
 const searchInput = document.getElementById("search-input");
+
+let wordsCache = [];
+let editingId = null;
+
+function enterEditMode(w) {
+  editingId = w.id;
+  wordFormTitle.textContent = "Editar palavra";
+  wordFormSubmit.textContent = "Salvar alterações";
+  wordFormCancel.hidden = false;
+  wordInput.value = w.word;
+  translationInput.value = w.translation;
+  exampleInput.value = w.example_sentence || "";
+  wordInput.focus();
+}
+
+function exitEditMode() {
+  editingId = null;
+  wordFormTitle.textContent = "Adicionar palavra";
+  wordFormSubmit.textContent = "Adicionar";
+  wordFormCancel.hidden = true;
+  wordForm.reset();
+}
+
+wordFormCancel.addEventListener("click", exitEditMode);
 
 async function loadWords(query) {
   const url = query ? `/api/words?q=${encodeURIComponent(query)}` : "/api/words";
   const res = await fetch(url);
   const words = await res.json();
+  wordsCache = words;
   wordsTbody.innerHTML = "";
   wordsEmpty.hidden = words.length > 0;
 
@@ -70,7 +101,10 @@ async function loadWords(query) {
       <td>${escapeHtml(w.translation)}</td>
       <td>${escapeHtml(w.example_sentence || "")}</td>
       <td>${audioCell}</td>
-      <td><button class="delete-btn" data-id="${w.id}">Excluir</button></td>
+      <td class="actions-cell">
+        <button class="edit-btn" data-id="${w.id}">Editar</button>
+        <button class="delete-btn" data-id="${w.id}">Excluir</button>
+      </td>
     `;
     wordsTbody.appendChild(tr);
   }
@@ -83,21 +117,31 @@ function escapeHtml(str) {
 }
 
 wordsTbody.addEventListener("click", async (e) => {
-  if (!e.target.classList.contains("delete-btn")) return;
-  const id = e.target.dataset.id;
-  await fetch(`/api/words/${id}`, { method: "DELETE" });
-  loadWords(searchInput.value.trim());
+  if (e.target.classList.contains("edit-btn")) {
+    const id = Number(e.target.dataset.id);
+    const w = wordsCache.find((item) => item.id === id);
+    if (w) enterEditMode(w);
+    return;
+  }
+
+  if (e.target.classList.contains("delete-btn")) {
+    const id = Number(e.target.dataset.id);
+    await fetch(`/api/words/${id}`, { method: "DELETE" });
+    if (editingId === id) exitEditMode();
+    loadWords(searchInput.value.trim());
+  }
 });
 
 wordForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const word = document.getElementById("word-input").value.trim();
-  const translation = document.getElementById("translation-input").value.trim();
-  const example_sentence = document.getElementById("example-input").value.trim() || null;
+  const word = wordInput.value.trim();
+  const translation = translationInput.value.trim();
+  const example_sentence = exampleInput.value.trim() || null;
+  const isEditing = editingId !== null;
 
   wordFormMsg.textContent = "Salvando (gerando áudio se necessário)...";
-  const res = await fetch("/api/words", {
-    method: "POST",
+  const res = await fetch(isEditing ? `/api/words/${editingId}` : "/api/words", {
+    method: isEditing ? "PUT" : "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word, translation, example_sentence }),
   });
@@ -108,8 +152,8 @@ wordForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  wordFormMsg.textContent = "Palavra salva!";
-  wordForm.reset();
+  wordFormMsg.textContent = isEditing ? "Alterações salvas!" : "Palavra salva!";
+  exitEditMode();
   loadWords(searchInput.value.trim());
   setTimeout(() => (wordFormMsg.textContent = ""), 2000);
 });
