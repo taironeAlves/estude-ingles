@@ -1,3 +1,26 @@
+// --- Tema (claro/escuro) ---
+const THEME_KEY = "estude-ingles-theme";
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.querySelectorAll(".theme-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.theme === theme);
+  });
+}
+
+document.querySelectorAll(".theme-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    localStorage.setItem(THEME_KEY, btn.dataset.theme);
+    applyTheme(btn.dataset.theme);
+  });
+});
+
+(function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  applyTheme(saved || preferred);
+})();
+
 // --- Navegação lateral ---
 function switchView(view) {
   document.querySelectorAll(".nav-item[data-view]").forEach((b) => {

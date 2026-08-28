@@ -25,6 +25,27 @@
   }
 }
 
+/* Tema escolhido explicitamente pelo usuário (sobrepõe a preferência do SO) */
+:root[data-theme="light"] {
+  --bg: #f5f6f8;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1c1e21;
+  --muted: #6b7280;
+  --border: #e2e4e9;
+  --accent-soft: #eaf0fe;
+}
+
+:root[data-theme="dark"] {
+  --bg: #14161a;
+  --sidebar-bg: #191b20;
+  --card-bg: #1e2126;
+  --text: #e8e9ec;
+  --muted: #9aa0aa;
+  --border: #2c2f36;
+  --accent-soft: #1c2a4a;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -109,6 +130,34 @@ body {
 .nav-subitem {
   padding-left: 1.5rem;
   font-size: 0.9rem;
+}
+
+/* Seletor de tema */
+.theme-switch {
+  margin-top: auto;
+  padding: 0.75rem 0.75rem 0.25rem;
+}
+
+.theme-buttons {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.theme-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.theme-btn.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
 }
 
 /* Content */
