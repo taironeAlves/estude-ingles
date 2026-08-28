@@ -34,6 +34,27 @@ gerado localmente e específico do seu vocabulário/progresso.
 
 ## Como rodar
 
+### Usando os scripts prontos (recomendado)
+
+**Windows:**
+```bat
+setup.bat
+start.bat
+```
+
+**Linux/Mac:**
+```bash
+./setup.sh
+./start.sh
+```
+
+`setup` cria o ambiente virtual (`.venv`) e instala as dependências.
+`start` sobe o servidor e abre o navegador automaticamente em
+http://localhost:8010 (a porta 8010 é usada para evitar conflito com a 8000,
+comumente ocupada por outros projetos).
+
+### Manualmente
+
 ```bash
 python -m venv .venv
 # Windows:
@@ -43,10 +64,10 @@ source .venv/bin/activate
 
 pip install -r requirements.txt
 
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8010
 ```
 
-Acesse http://localhost:8000
+Acesse http://localhost:8010
 
 Na primeira execução, o banco SQLite e a pasta de áudios são criados
 automaticamente. A geração de áudio requer conexão com a internet (o
