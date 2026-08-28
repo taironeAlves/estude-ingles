@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Dados locais - NÃO devem ir para o repositório público
+# (áudios gerados e banco de dados com o vocabulário/progresso do usuário)
+/data/audio/*
+!/data/audio/.gitkeep
+/data/*.db
+/data/*.sqlite3
+/data/*.sqlite
+
+# Env / segredos
+.env
+*.env
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs / pid files de execução local
+*.log
+*.pid

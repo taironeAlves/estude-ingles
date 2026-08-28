@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estude Inglês</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Estude Inglês</h1>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dicionario">Dicionário</button>
+      <button class="tab-btn" data-tab="treinamento">Treinamento</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- DICIONÁRIO -->
+    <section id="dicionario" class="tab-panel active">
+      <form id="word-form" class="card">
+        <h2>Adicionar palavra</h2>
+        <div class="field">
+          <label for="word-input">Palavra (inglês)</label>
+          <input id="word-input" type="text" required autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="translation-input">Tradução</label>
+          <input id="translation-input" type="text" required autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="example-input">Frase de exemplo (opcional, mas recomendada)</label>
+          <input id="example-input" type="text" placeholder="A frase deve conter a palavra" autocomplete="off" />
+        </div>
+        <button type="submit">Adicionar</button>
+        <p id="word-form-msg" class="msg"></p>
+      </form>
+
+      <div class="card">
+        <div class="list-header">
+          <h2>Palavras cadastradas</h2>
+          <input id="search-input" type="text" placeholder="Buscar..." />
+        </div>
+        <table id="words-table">
+          <thead>
+            <tr>
+              <th>Palavra</th>
+              <th>Tradução</th>
+              <th>Frase</th>
+              <th>Áudio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="words-tbody"></tbody>
+        </table>
+        <p id="words-empty" class="msg" hidden>Nenhuma palavra cadastrada ainda.</p>
+      </div>
+    </section>
+
+    <!-- TREINAMENTO -->
+    <section id="treinamento" class="tab-panel">
+      <nav class="subtabs">
+        <button class="subtab-btn active" data-subtab="listen-type">Ouvir e digitar</button>
+        <button class="subtab-btn" data-subtab="fill-blank">Complete a frase</button>
+      </nav>
+
+      <div id="listen-type" class="subtab-panel active card">
+        <h2>Ouvir e digitar</h2>
+        <p>Ouça o áudio e digite a palavra em inglês.</p>
+        <audio id="listen-audio" controls></audio>
+        <form id="listen-form" class="field">
+          <input id="listen-input" type="text" autocomplete="off" placeholder="Digite a palavra ouvida" />
+          <button type="submit">Verificar</button>
+        </form>
+        <p id="listen-feedback" class="feedback"></p>
+        <button id="listen-next" type="button">Nova palavra</button>
+      </div>
+
+      <div id="fill-blank" class="subtab-panel card">
+        <h2>Complete a frase</h2>
+        <p id="fill-sentence" class="sentence">Carregando...</p>
+        <form id="fill-form" class="field">
+          <input id="fill-input" type="text" autocomplete="off" placeholder="Digite a palavra que falta" />
+          <button type="submit">Verificar</button>
+        </form>
+        <p id="fill-feedback" class="feedback"></p>
+        <button id="fill-next" type="button">Nova frase</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
