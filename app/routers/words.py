@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..config import AUDIO_DIR
 from ..database import get_connection
 from ..omnivoice import generate_phrase_audio
-from ..tts import ensure_audio
+from ..tts import ensure_audio, generate_phrase_fallback_audio
 
 router = APIRouter(prefix="/api/words", tags=["words"])
 
@@ -28,6 +28,7 @@ class WordOut(BaseModel):
     example_sentence: Optional[str] = None
     audio_filename: Optional[str] = None
     example_audio_filename: Optional[str] = None
+    example_audio_source: Optional[str] = None
     created_at: str
 
 
@@ -162,7 +163,14 @@ async def update_word(word_id: int, payload: WordIn):
 
 @router.post("/{word_id}/example-audio", response_model=WordOut)
 async def generate_example_audio(word_id: int):
-    """Gera (ou regenera) o áudio humanizado da frase de exemplo via OmniVoice."""
+    """Gera (ou regenera) o áudio da frase de exemplo.
+
+    Tenta o OmniVoice (voz humanizada) primeiro; se o serviço externo
+    falhar por qualquer motivo (fora do ar, cota excedida, etc.), cai para
+    o motor padrão (edge-tts) em vez de deixar a frase sem áudio nenhum.
+    O botão na interface continua disponível para tentar o OmniVoice de
+    novo mais tarde.
+    """
     conn = get_connection()
     row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
     conn.close()
@@ -174,10 +182,11 @@ async def generate_example_audio(word_id: int):
     old_filename = row["example_audio_filename"]
     try:
         filename = await generate_phrase_audio(word_id, row["example_sentence"])
+        source = "omnivoice"
     except Exception as exc:
-        raise HTTPException(
-            502, f"Falha ao gerar áudio humanizado (serviço externo indisponível): {exc}"
-        ) from exc
+        print(f"[omnivoice] falhou para a palavra {word_id}, usando fallback edge-tts: {exc}")
+        filename = await generate_phrase_fallback_audio(word_id, row["example_sentence"])
+        source = "edge-tts"
 
     if old_filename and old_filename != filename:
         old_path = AUDIO_DIR / old_filename
@@ -186,7 +195,8 @@ async def generate_example_audio(word_id: int):
 
     conn = get_connection()
     conn.execute(
-        "UPDATE words SET example_audio_filename = ? WHERE id = ?", (filename, word_id)
+        "UPDATE words SET example_audio_filename = ?, example_audio_source = ? WHERE id = ?",
+        (filename, source, word_id),
     )
     conn.commit()
     row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()

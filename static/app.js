@@ -111,8 +111,12 @@ async function loadWords(query) {
     if (w.example_sentence) {
       if (w.example_audio_filename) {
         exampleCell += `<audio controls src="/audio/${w.example_audio_filename}"></audio>`;
+        if (w.example_audio_source === "edge-tts") {
+          exampleCell +=
+            '<span class="audio-source-note">voz padrão (IA indisponível no momento — tente regerar depois)</span>';
+        }
       }
-      exampleCell += `<button class="ai-audio-btn" data-id="${w.id}" title="Gera um áudio mais humanizado da frase via OmniVoice (serviço externo, pode ser lento)">${
+      exampleCell += `<button class="ai-audio-btn" data-id="${w.id}" title="Gera um áudio mais humanizado da frase via OmniVoice (serviço externo, pode ser lento); se falhar, usa a voz padrão automaticamente">${
         w.example_audio_filename ? "Regerar áudio IA" : "Gerar áudio IA"
       }</button>`;
     }

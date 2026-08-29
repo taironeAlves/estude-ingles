@@ -385,6 +385,13 @@ audio { width: 100%; margin: 0.75rem 0; }
   cursor: default;
 }
 
+.audio-source-note {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
 /* Small screens: collapse sidebar to a top bar */
 @media (max-width: 720px) {
   .app-layout { flex-direction: column; }
