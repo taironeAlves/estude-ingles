@@ -28,6 +28,17 @@ def _get_client() -> Client:
     return _client
 
 
+# A API do Space não tem um parâmetro de "tom"/"estilo" livre (ex: "tom de
+# entrevista") — só atributos estruturados de voz. O mais perto do pedido
+# (voz masculina adulta, conversa natural) é: gênero masculino, faixa etária
+# "Young Adult", estilo "Auto" (ou seja, sem o único estilo especial
+# disponível, que é sussurro).
+VOICE_GENDER = "Male / 男"
+VOICE_AGE = "Middle-aged / 中年"
+VOICE_STYLE = "Auto"
+VOICE_ACCENT = "American Accent / 美式口音"
+
+
 def _generate_sync(text: str, dest_path: Path) -> None:
     client = _get_client()
     audio_path, _status = client.predict(
@@ -40,11 +51,11 @@ def _generate_sync(text: str, dest_path: Path) -> None:
         du=None,
         pp=True,
         po=True,
-        param_9="Auto",
-        param_10="Auto",
+        param_9=VOICE_GENDER,
+        param_10=VOICE_AGE,
         param_11="Auto",
-        param_12="Auto",
-        param_13="American Accent / 美式口音",
+        param_12=VOICE_STYLE,
+        param_13=VOICE_ACCENT,
         param_14="Auto",
         api_name="/_design_fn",
     )
