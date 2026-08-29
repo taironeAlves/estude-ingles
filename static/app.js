@@ -172,8 +172,17 @@ const listenFeedback = document.getElementById("listen-feedback");
 const listenNext = document.getElementById("listen-next");
 let currentListenId = null;
 let listenSolved = false;
+let listenCountdownId = null;
+
+function clearListenCountdown() {
+  if (listenCountdownId !== null) {
+    clearInterval(listenCountdownId);
+    listenCountdownId = null;
+  }
+}
 
 async function loadListenChallenge() {
+  clearListenCountdown();
   listenSolved = false;
   listenFeedback.textContent = "";
   listenFeedback.className = "feedback";
@@ -195,12 +204,7 @@ async function loadListenChallenge() {
 
 listenForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (currentListenId === null) return;
-
-  if (listenSolved) {
-    loadListenChallenge();
-    return;
-  }
+  if (currentListenId === null || listenSolved) return;
 
   const res = await fetch("/api/training/listen-and-type/check", {
     method: "POST",
@@ -209,9 +213,19 @@ listenForm.addEventListener("submit", async (e) => {
   });
   const data = await res.json();
   if (data.correct) {
-    listenFeedback.textContent = "Correto! Pressione Enter novamente para a próxima palavra.";
-    listenFeedback.className = "feedback correct";
     listenSolved = true;
+    listenFeedback.className = "feedback correct";
+    let secondsLeft = 3;
+    listenFeedback.textContent = `Correto! Indo para a próxima em ${secondsLeft} segundos...`;
+    listenCountdownId = setInterval(() => {
+      secondsLeft -= 1;
+      if (secondsLeft <= 0) {
+        clearListenCountdown();
+        loadListenChallenge();
+        return;
+      }
+      listenFeedback.textContent = `Correto! Indo para a próxima em ${secondsLeft} segundos...`;
+    }, 1000);
   } else {
     listenFeedback.textContent = `Errado. Resposta certa: ${data.word} (${data.translation})`;
     listenFeedback.className = "feedback wrong";
