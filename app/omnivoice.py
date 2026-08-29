@@ -1,10 +1,10 @@
 import asyncio
 import os
-import shutil
 from pathlib import Path
 
 from gradio_client import Client
 
+from .audio_utils import build_repeated_audio
 from .config import AUDIO_DIR
 
 # Space público (comunidade k2-fsa) rodando o modelo OmniVoice em GPU
@@ -59,7 +59,10 @@ def _generate_sync(text: str, dest_path: Path) -> None:
         param_14="Auto",
         api_name="/_design_fn",
     )
-    shutil.copy(audio_path, dest_path)
+    # Mesma regra das 21 vezes aplicada à palavra: repete a frase gerada
+    # com 1s de silêncio entre cada repetição. O wav do OmniVoice é lido e
+    # escrito nativamente pelo pydub (sem precisar de ffmpeg/ffprobe).
+    build_repeated_audio(Path(audio_path), dest_path, format="wav")
 
 
 async def generate_phrase_audio(word_id: int, text: str) -> str:
