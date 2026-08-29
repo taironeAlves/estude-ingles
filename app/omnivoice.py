@@ -24,7 +24,7 @@ _client: Client | None = None
 def _get_client() -> Client:
     global _client
     if _client is None:
-        _client = Client(SPACE_ID, hf_token=HF_TOKEN)
+        _client = Client(SPACE_ID, token=HF_TOKEN)
     return _client
 
 
