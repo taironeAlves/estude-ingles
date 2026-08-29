@@ -7,7 +7,9 @@ Aplicação web para aprendizado de inglês: dicionário pessoal de palavras com
 
 - **Dicionário**: cadastro de palavras em inglês com tradução e frase de
   exemplo. O áudio da palavra é gerado automaticamente (via
-  [edge-tts](https://github.com/rany2/edge-tts)) caso ainda não exista.
+  [edge-tts](https://github.com/rany2/edge-tts)) caso ainda não exista,
+  seguindo a "regra das 21 vezes": a palavra é repetida 21 vezes, com 1
+  segundo de silêncio entre cada repetição, tudo no mesmo arquivo de áudio.
 - **Treinamento**:
   - *Ouvir e digitar*: toca o áudio de uma palavra aleatória e o usuário
     digita o que ouviu.
@@ -22,6 +24,9 @@ Treinamento.
 - Backend: Python + [FastAPI](https://fastapi.tiangolo.com/) + SQLite
   (`sqlite3` da stdlib)
 - TTS: [edge-tts](https://github.com/rany2/edge-tts) (gratuito, sem API key)
+- Montagem do áudio (repetição 21x + silêncio): [pydub](https://github.com/jiaaro/pydub)
+  usando o ffmpeg embutido via [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg)
+  (não precisa instalar ffmpeg manualmente)
 - Frontend: HTML/CSS/JS puro, servido como arquivos estáticos pelo próprio
   backend
 
