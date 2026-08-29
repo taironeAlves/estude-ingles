@@ -23,5 +23,12 @@ def init_db() -> None:
         )
         """
     )
+
+    # Migração aditiva: áudio humanizado (OmniVoice) da frase de exemplo,
+    # opcional e separado do áudio da palavra (edge-tts).
+    existing_columns = {row["name"] for row in conn.execute("PRAGMA table_info(words)")}
+    if "example_audio_filename" not in existing_columns:
+        conn.execute("ALTER TABLE words ADD COLUMN example_audio_filename TEXT")
+
     conn.commit()
     conn.close()

@@ -4,3 +4,5 @@ edge-tts>=6.1
 pydub>=0.25
 imageio-ffmpeg>=0.5
 audioop-lts>=0.2; python_version >= "3.13"
+gradio_client>=1.0
+python-dotenv>=1.0

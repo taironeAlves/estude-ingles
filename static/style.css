@@ -370,6 +370,21 @@ audio { width: 100%; margin: 0.75rem 0; }
   border: 1px solid var(--err);
 }
 
+.ai-audio-btn {
+  display: block;
+  margin-top: 0.4rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.ai-audio-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Small screens: collapse sidebar to a top bar */
 @media (max-width: 720px) {
   .app-layout { flex-direction: column; }

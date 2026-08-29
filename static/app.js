@@ -107,10 +107,20 @@ async function loadWords(query) {
       ? `<audio controls src="/audio/${w.audio_filename}"></audio>`
       : "—";
 
+    let exampleCell = escapeHtml(w.example_sentence || "");
+    if (w.example_sentence) {
+      if (w.example_audio_filename) {
+        exampleCell += `<audio controls src="/audio/${w.example_audio_filename}"></audio>`;
+      }
+      exampleCell += `<button class="ai-audio-btn" data-id="${w.id}" title="Gera um áudio mais humanizado da frase via OmniVoice (serviço externo, pode ser lento)">${
+        w.example_audio_filename ? "Regerar áudio IA" : "Gerar áudio IA"
+      }</button>`;
+    }
+
     tr.innerHTML = `
       <td>${escapeHtml(w.word)}</td>
       <td>${escapeHtml(w.translation)}</td>
-      <td>${escapeHtml(w.example_sentence || "")}</td>
+      <td>${exampleCell}</td>
       <td>${audioCell}</td>
       <td class="actions-cell">
         <button class="edit-btn" data-id="${w.id}">Editar</button>
@@ -141,6 +151,25 @@ wordsTbody.addEventListener("click", async (e) => {
     if (editingId === id) exitEditMode();
     loadWords(searchInput.value.trim());
     loadWordCount();
+    return;
+  }
+
+  if (e.target.classList.contains("ai-audio-btn")) {
+    const id = Number(e.target.dataset.id);
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = "Gerando (pode levar até 1 min)...";
+    try {
+      const res = await fetch(`/api/words/${id}/example-audio`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || "Erro ao gerar áudio humanizado.");
+      }
+    } catch (err) {
+      alert("Erro de conexão ao gerar áudio humanizado.");
+    } finally {
+      loadWords(searchInput.value.trim());
+    }
   }
 });
 

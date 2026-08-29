@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from ..config import AUDIO_DIR
 from ..database import get_connection
+from ..omnivoice import generate_phrase_audio
 from ..tts import ensure_audio
 
 router = APIRouter(prefix="/api/words", tags=["words"])
@@ -26,6 +27,7 @@ class WordOut(BaseModel):
     translation: str
     example_sentence: Optional[str] = None
     audio_filename: Optional[str] = None
+    example_audio_filename: Optional[str] = None
     created_at: str
 
 
@@ -135,9 +137,19 @@ async def update_word(word_id: int, payload: WordIn):
             old_path.unlink()
         audio_filename = None
 
+    # A frase mudou: o áudio humanizado antigo não corresponde mais ao texto.
+    example_audio_filename = existing["example_audio_filename"]
+    example_changed = (example or "") != (existing["example_sentence"] or "")
+    if example_changed and example_audio_filename:
+        old_example_path = AUDIO_DIR / example_audio_filename
+        if old_example_path.exists():
+            old_example_path.unlink()
+        example_audio_filename = None
+
     conn.execute(
-        "UPDATE words SET word = ?, translation = ?, example_sentence = ?, audio_filename = ? WHERE id = ?",
-        (word, translation, example, audio_filename, word_id),
+        "UPDATE words SET word = ?, translation = ?, example_sentence = ?, "
+        "audio_filename = ?, example_audio_filename = ? WHERE id = ?",
+        (word, translation, example, audio_filename, example_audio_filename, word_id),
     )
     conn.commit()
     row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
@@ -146,6 +158,40 @@ async def update_word(word_id: int, payload: WordIn):
     result = dict(row)
     result["audio_filename"] = await _sync_audio(word_id, result["word"], result["audio_filename"])
     return result
+
+
+@router.post("/{word_id}/example-audio", response_model=WordOut)
+async def generate_example_audio(word_id: int):
+    """Gera (ou regenera) o áudio humanizado da frase de exemplo via OmniVoice."""
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(404, "Palavra não encontrada")
+    if not row["example_sentence"]:
+        raise HTTPException(400, "Essa palavra não tem frase de exemplo cadastrada")
+
+    old_filename = row["example_audio_filename"]
+    try:
+        filename = await generate_phrase_audio(word_id, row["example_sentence"])
+    except Exception as exc:
+        raise HTTPException(
+            502, f"Falha ao gerar áudio humanizado (serviço externo indisponível): {exc}"
+        ) from exc
+
+    if old_filename and old_filename != filename:
+        old_path = AUDIO_DIR / old_filename
+        if old_path.exists():
+            old_path.unlink()
+
+    conn = get_connection()
+    conn.execute(
+        "UPDATE words SET example_audio_filename = ? WHERE id = ?", (filename, word_id)
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
+    conn.close()
+    return dict(row)
 
 
 @router.delete("/{word_id}")
@@ -163,5 +209,10 @@ def delete_word(word_id: int):
         audio_path = AUDIO_DIR / row["audio_filename"]
         if audio_path.exists():
             audio_path.unlink()
+
+    if row["example_audio_filename"]:
+        example_audio_path = AUDIO_DIR / row["example_audio_filename"]
+        if example_audio_path.exists():
+            example_audio_path.unlink()
 
     return {"ok": True}

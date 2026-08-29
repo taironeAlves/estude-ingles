@@ -10,6 +10,10 @@ Aplicação web para aprendizado de inglês: dicionário pessoal de palavras com
   [edge-tts](https://github.com/rany2/edge-tts)) caso ainda não exista,
   seguindo a "regra das 21 vezes": a palavra é repetida 21 vezes, com 1
   segundo de silêncio entre cada repetição, tudo no mesmo arquivo de áudio.
+  Cada palavra também pode ter um áudio "humanizado" opcional da sua frase
+  de exemplo, gerado sob demanda pelo botão "Gerar áudio IA" (usa o modelo
+  [OmniVoice](https://github.com/k2-fsa/OmniVoice) via um Space público no
+  Hugging Face — veja a seção [Áudio humanizado](#áudio-humanizado-omnivoice-opcional)).
 - **Treinamento**:
   - *Ouvir e digitar*: toca o áudio de uma palavra aleatória e o usuário
     digita o que ouviu.
@@ -78,6 +82,26 @@ Na primeira execução, o banco SQLite e a pasta de áudios são criados
 automaticamente. A geração de áudio requer conexão com a internet (o
 edge-tts consulta o serviço de TTS da Microsoft Edge).
 
+## Áudio humanizado (OmniVoice, opcional)
+
+O botão "Gerar áudio IA" na frase de exemplo de cada palavra chama o Space
+público [k2-fsa/OmniVoice](https://huggingface.co/spaces/k2-fsa/OmniVoice)
+no Hugging Face (GPU compartilhada gratuita, "ZeroGPU"). Pontos importantes:
+
+- **Não é uma API oficial/estável** — é um demo comunitário; pode ficar
+  lento, enfileirado ou mudar sem aviso. Por isso é uma ação manual e
+  opcional, separada da geração automática de áudio da palavra (que continua
+  sempre no edge-tts, rápido e confiável).
+- **Cota gratuita é curta**: sem autenticação, a cota do ZeroGPU se esgota
+  rápido (na prática, poucas gerações). Para uma cota maior, crie um token
+  gratuito em https://huggingface.co/settings/tokens e coloque num arquivo
+  `.env` na raiz do projeto (não versionado):
+  ```
+  HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  ```
+- Não requer instalação de PyTorch/modelo local — só a lib `gradio_client`,
+  já incluída no `requirements.txt`.
+
 ## Estrutura
 
 ```
@@ -85,7 +109,8 @@ app/
   main.py          # app FastAPI, monta rotas e arquivos estáticos
   config.py        # caminhos (data/, static/, etc.)
   database.py      # conexão e schema SQLite
-  tts.py           # geração de áudio sob demanda
+  tts.py           # geração de áudio da palavra sob demanda (edge-tts)
+  omnivoice.py     # áudio humanizado opcional da frase (OmniVoice/HF Space)
   routers/
     words.py       # CRUD do dicionário
     training.py    # exercícios de treinamento
