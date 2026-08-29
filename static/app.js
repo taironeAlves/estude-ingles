@@ -52,10 +52,21 @@ const translationInput = document.getElementById("translation-input");
 const exampleInput = document.getElementById("example-input");
 const wordsTbody = document.getElementById("words-tbody");
 const wordsEmpty = document.getElementById("words-empty");
+const wordsTitle = document.getElementById("words-title");
+const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
+const searchClear = document.getElementById("search-clear");
 
 let wordsCache = [];
 let editingId = null;
+
+async function loadWordCount() {
+  const statEl = document.getElementById("stat-word-count");
+  if (!statEl) return;
+  const res = await fetch("/api/words/count");
+  const data = await res.json();
+  statEl.textContent = data.total;
+}
 
 function enterEditMode(w) {
   editingId = w.id;
@@ -86,8 +97,8 @@ async function loadWords(query) {
   wordsTbody.innerHTML = "";
   wordsEmpty.hidden = words.length > 0;
 
-  const statEl = document.getElementById("stat-word-count");
-  if (statEl && !query) statEl.textContent = words.length;
+  wordsTitle.textContent = query ? `Resultados para "${query}"` : "Últimas palavras cadastradas";
+  searchClear.hidden = !query;
 
   for (const w of words) {
     const tr = document.createElement("tr");
@@ -129,6 +140,7 @@ wordsTbody.addEventListener("click", async (e) => {
     await fetch(`/api/words/${id}`, { method: "DELETE" });
     if (editingId === id) exitEditMode();
     loadWords(searchInput.value.trim());
+    loadWordCount();
   }
 });
 
@@ -155,13 +167,18 @@ wordForm.addEventListener("submit", async (e) => {
   wordFormMsg.textContent = isEditing ? "Alterações salvas!" : "Palavra salva!";
   exitEditMode();
   loadWords(searchInput.value.trim());
+  loadWordCount();
   setTimeout(() => (wordFormMsg.textContent = ""), 2000);
 });
 
-let searchTimeout;
-searchInput.addEventListener("input", () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => loadWords(searchInput.value.trim()), 250);
+searchForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  loadWords(searchInput.value.trim());
+});
+
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  loadWords();
 });
 
 // --- Treinamento: Ouvir e digitar ---
@@ -281,3 +298,4 @@ fillNext.addEventListener("click", loadFillChallenge);
 // A tela inicial é a de boas-vindas; os treinamentos carregam sob demanda
 // quando o usuário abre cada um pela primeira vez (ver switchView).
 loadWords();
+loadWordCount();

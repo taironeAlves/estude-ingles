@@ -98,8 +98,12 @@
 
         <div class="card">
           <div class="list-header">
-            <h2>Palavras cadastradas</h2>
-            <input id="search-input" type="text" placeholder="Buscar..." />
+            <h2 id="words-title">Últimas palavras cadastradas</h2>
+            <form id="search-form" class="search-form">
+              <input id="search-input" type="text" placeholder="Buscar palavra ou tradução..." />
+              <button type="submit">Buscar</button>
+              <button type="button" id="search-clear" class="secondary-btn" hidden>Limpar</button>
+            </form>
           </div>
           <table id="words-table">
             <thead>

@@ -9,6 +9,10 @@ from ..tts import ensure_audio
 
 router = APIRouter(prefix="/api/words", tags=["words"])
 
+# Sem termo de busca, mostramos só as últimas cadastradas para manter a
+# lista leve; ao buscar, retornamos todos os resultados que baterem.
+DEFAULT_LIST_LIMIT = 10
+
 
 class WordIn(BaseModel):
     word: str
@@ -35,9 +39,19 @@ def list_words(q: Optional[str] = None):
             (like, like),
         ).fetchall()
     else:
-        rows = conn.execute("SELECT * FROM words ORDER BY created_at DESC").fetchall()
+        rows = conn.execute(
+            "SELECT * FROM words ORDER BY created_at DESC LIMIT ?", (DEFAULT_LIST_LIMIT,)
+        ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+@router.get("/count")
+def count_words():
+    conn = get_connection()
+    total = conn.execute("SELECT COUNT(*) AS total FROM words").fetchone()["total"]
+    conn.close()
+    return {"total": total}
 
 
 async def _sync_audio(word_id: int, word: str, audio_filename: Optional[str]) -> str:

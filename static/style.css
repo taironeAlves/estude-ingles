@@ -308,6 +308,16 @@ button:hover { opacity: 0.9; }
   flex-wrap: wrap;
 }
 
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.search-form input[type="text"] {
+  width: 220px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
