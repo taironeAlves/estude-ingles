@@ -171,8 +171,10 @@ const listenInput = document.getElementById("listen-input");
 const listenFeedback = document.getElementById("listen-feedback");
 const listenNext = document.getElementById("listen-next");
 let currentListenId = null;
+let listenSolved = false;
 
 async function loadListenChallenge() {
+  listenSolved = false;
   listenFeedback.textContent = "";
   listenFeedback.className = "feedback";
   listenInput.value = "";
@@ -194,6 +196,12 @@ async function loadListenChallenge() {
 listenForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (currentListenId === null) return;
+
+  if (listenSolved) {
+    loadListenChallenge();
+    return;
+  }
+
   const res = await fetch("/api/training/listen-and-type/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -201,8 +209,9 @@ listenForm.addEventListener("submit", async (e) => {
   });
   const data = await res.json();
   if (data.correct) {
-    listenFeedback.textContent = "Correto!";
+    listenFeedback.textContent = "Correto! Pressione Enter novamente para a próxima palavra.";
     listenFeedback.className = "feedback correct";
+    listenSolved = true;
   } else {
     listenFeedback.textContent = `Errado. Resposta certa: ${data.word} (${data.translation})`;
     listenFeedback.className = "feedback wrong";
