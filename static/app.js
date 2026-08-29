@@ -185,6 +185,10 @@ async function loadListenChallenge() {
   const data = await res.json();
   currentListenId = data.id;
   listenAudio.src = data.audio_url;
+  listenAudio.play().catch(() => {
+    // Autoplay pode ser bloqueado pelo navegador; o usuário ainda pode
+    // dar play manualmente pelo controle do áudio.
+  });
 }
 
 listenForm.addEventListener("submit", async (e) => {
