@@ -21,6 +21,23 @@ document.querySelectorAll(".theme-btn").forEach((btn) => {
   applyTheme(saved || preferred);
 })();
 
+// --- Áudio: só um tocando por vez ---
+// O evento "play" não borbulha (bubble), então o listener precisa ser
+// registrado na fase de captura para pegar qualquer <audio> da página,
+// incluindo os criados dinamicamente na tabela do dicionário.
+document.addEventListener(
+  "play",
+  (e) => {
+    if (e.target.tagName !== "AUDIO") return;
+    document.querySelectorAll("audio").forEach((audio) => {
+      if (audio !== e.target && !audio.paused) {
+        audio.pause();
+      }
+    });
+  },
+  true
+);
+
 // --- Navegação lateral ---
 function switchView(view) {
   document.querySelectorAll(".nav-item[data-view]").forEach((b) => {
