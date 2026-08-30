@@ -240,6 +240,9 @@ const listenNext = document.getElementById("listen-next");
 let currentListenId = null;
 let listenSolved = false;
 let listenCountdownId = null;
+// Palavras já sorteadas nesta sessão (não repete até passar por todas).
+// Reseta sozinho ao recarregar a página.
+let listenUsedIds = new Set();
 
 function clearListenCountdown() {
   if (listenCountdownId !== null) {
@@ -254,13 +257,18 @@ async function loadListenChallenge() {
   listenFeedback.textContent = "";
   listenFeedback.className = "feedback";
   listenInput.value = "";
-  const res = await fetch("/api/training/listen-and-type");
+  const exclude = listenUsedIds.size ? `?exclude=${[...listenUsedIds].join(",")}` : "";
+  const res = await fetch(`/api/training/listen-and-type${exclude}`);
   if (!res.ok) {
     listenFeedback.textContent = "Cadastre palavras com áudio para treinar.";
     listenAudio.removeAttribute("src");
     return;
   }
   const data = await res.json();
+  if (data.cycle_restarted) {
+    listenUsedIds.clear();
+  }
+  listenUsedIds.add(data.id);
   currentListenId = data.id;
   listenAudio.src = data.audio_url;
   listenAudio.play().catch(() => {

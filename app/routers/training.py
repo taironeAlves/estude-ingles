@@ -27,7 +27,7 @@ def _blank_sentence(sentence: str, word: str) -> Optional[str]:
 
 
 @router.get("/listen-and-type")
-def new_listen_and_type():
+def new_listen_and_type(exclude: Optional[str] = None):
     conn = get_connection()
     rows = conn.execute(
         "SELECT id, audio_filename FROM words WHERE audio_filename IS NOT NULL"
@@ -35,8 +35,24 @@ def new_listen_and_type():
     conn.close()
     if not rows:
         raise HTTPException(400, "Nenhuma palavra com áudio disponível ainda")
-    chosen = random.choice(rows)
-    return {"id": chosen["id"], "audio_url": f"/audio/{chosen['audio_filename']}"}
+
+    excluded_ids = set()
+    if exclude:
+        excluded_ids = {int(part) for part in exclude.split(",") if part.strip().isdigit()}
+
+    remaining = [row for row in rows if row["id"] not in excluded_ids]
+    cycle_restarted = False
+    if not remaining:
+        # Já passou por todas as palavras disponíveis: reinicia o ciclo.
+        remaining = rows
+        cycle_restarted = True
+
+    chosen = random.choice(remaining)
+    return {
+        "id": chosen["id"],
+        "audio_url": f"/audio/{chosen['audio_filename']}",
+        "cycle_restarted": cycle_restarted,
+    }
 
 
 @router.post("/listen-and-type/check")
