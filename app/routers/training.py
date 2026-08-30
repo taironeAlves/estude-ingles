@@ -70,7 +70,7 @@ def check_listen_and_type(payload: CheckIn):
 
 
 @router.get("/fill-blank")
-def new_fill_blank():
+def new_fill_blank(exclude: Optional[str] = None):
     conn = get_connection()
     rows = conn.execute(
         "SELECT id, word, example_sentence FROM words "
@@ -86,7 +86,21 @@ def new_fill_blank():
 
     if not candidates:
         raise HTTPException(400, "Nenhuma frase de exemplo disponível ainda")
-    return random.choice(candidates)
+
+    excluded_ids = set()
+    if exclude:
+        excluded_ids = {int(part) for part in exclude.split(",") if part.strip().isdigit()}
+
+    remaining = [c for c in candidates if c["id"] not in excluded_ids]
+    cycle_restarted = False
+    if not remaining:
+        # Já passou por todas as frases disponíveis: reinicia o ciclo.
+        remaining = candidates
+        cycle_restarted = True
+
+    chosen = dict(random.choice(remaining))
+    chosen["cycle_restarted"] = cycle_restarted
+    return chosen
 
 
 @router.post("/fill-blank/check")

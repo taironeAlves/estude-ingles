@@ -316,18 +316,26 @@ const fillInput = document.getElementById("fill-input");
 const fillFeedback = document.getElementById("fill-feedback");
 const fillNext = document.getElementById("fill-next");
 let currentFillId = null;
+// Frases já sorteadas nesta sessão (não repete até passar por todas).
+// Reseta sozinho ao recarregar a página.
+let fillUsedIds = new Set();
 
 async function loadFillChallenge() {
   fillFeedback.textContent = "";
   fillFeedback.className = "feedback";
   fillInput.value = "";
-  const res = await fetch("/api/training/fill-blank");
+  const exclude = fillUsedIds.size ? `?exclude=${[...fillUsedIds].join(",")}` : "";
+  const res = await fetch(`/api/training/fill-blank${exclude}`);
   if (!res.ok) {
     fillSentence.textContent = "Cadastre palavras com frase de exemplo para treinar.";
     currentFillId = null;
     return;
   }
   const data = await res.json();
+  if (data.cycle_restarted) {
+    fillUsedIds.clear();
+  }
+  fillUsedIds.add(data.id);
   currentFillId = data.id;
   fillSentence.textContent = data.sentence;
 }
