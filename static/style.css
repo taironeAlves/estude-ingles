@@ -271,7 +271,7 @@ body {
   margin-bottom: 0.75rem;
 }
 
-#listen-form.field, #fill-form.field {
+#listen-form.field, #listen-sentence-form.field, #fill-form.field {
   flex-direction: row;
   align-items: center;
 }

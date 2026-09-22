@@ -47,6 +47,7 @@ function switchView(view) {
   document.getElementById(`view-${view}`).classList.add("active");
 
   if (view === "listen-type" && currentListenId === null) loadListenChallenge();
+  if (view === "listen-sentence" && currentSentenceId === null) loadSentenceChallenge();
   if (view === "fill-blank" && currentFillId === null) loadFillChallenge();
 }
 
@@ -310,6 +311,86 @@ listenForm.addEventListener("submit", async (e) => {
 });
 
 listenNext.addEventListener("click", loadListenChallenge);
+
+// --- Treinamento: Ouvir e digitar a frase ---
+const sentenceAudio = document.getElementById("listen-sentence-audio");
+const sentenceForm = document.getElementById("listen-sentence-form");
+const sentenceInput = document.getElementById("listen-sentence-input");
+const sentenceFeedback = document.getElementById("listen-sentence-feedback");
+const sentenceNext = document.getElementById("listen-sentence-next");
+let currentSentenceId = null;
+let sentenceSolved = false;
+let sentenceCountdownId = null;
+// Frases já sorteadas nesta sessão (não repete até passar por todas).
+let sentenceUsedIds = new Set();
+
+function clearSentenceCountdown() {
+  if (sentenceCountdownId !== null) {
+    clearInterval(sentenceCountdownId);
+    sentenceCountdownId = null;
+  }
+}
+
+async function loadSentenceChallenge() {
+  clearSentenceCountdown();
+  sentenceSolved = false;
+  sentenceFeedback.textContent = "";
+  sentenceFeedback.className = "feedback";
+  sentenceInput.value = "";
+  const exclude = sentenceUsedIds.size ? `?exclude=${[...sentenceUsedIds].join(",")}` : "";
+  const res = await fetch(`/api/training/listen-and-type-sentence${exclude}`);
+  if (!res.ok) {
+    sentenceFeedback.textContent =
+      'Gere áudio de frase (botão "Gerar áudio IA" no dicionário) para treinar.';
+    sentenceAudio.removeAttribute("src");
+    return;
+  }
+  const data = await res.json();
+  if (data.cycle_restarted) {
+    sentenceUsedIds.clear();
+  }
+  sentenceUsedIds.add(data.id);
+  currentSentenceId = data.id;
+  sentenceAudio.src = data.audio_url;
+  sentenceAudio.play().catch(() => {
+    // Autoplay pode ser bloqueado pelo navegador; o usuário ainda pode
+    // dar play manualmente pelo controle do áudio.
+  });
+}
+
+sentenceForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (currentSentenceId === null || sentenceSolved) return;
+
+  const res = await fetch("/api/training/listen-and-type-sentence/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: currentSentenceId, answer: sentenceInput.value }),
+  });
+  const data = await res.json();
+  if (data.correct) {
+    sentenceSolved = true;
+    sentenceFeedback.className = "feedback correct";
+    let secondsLeft = 3;
+    const buildCorrectMsg = () =>
+      `Correto! Indo para a próxima em ${secondsLeft} segundos...`;
+    sentenceFeedback.textContent = buildCorrectMsg();
+    sentenceCountdownId = setInterval(() => {
+      secondsLeft -= 1;
+      if (secondsLeft <= 0) {
+        clearSentenceCountdown();
+        loadSentenceChallenge();
+        return;
+      }
+      sentenceFeedback.textContent = buildCorrectMsg();
+    }, 1000);
+  } else {
+    sentenceFeedback.textContent = `Errado. Frase certa: ${data.example_sentence}`;
+    sentenceFeedback.className = "feedback wrong";
+  }
+});
+
+sentenceNext.addEventListener("click", loadSentenceChallenge);
 
 // --- Treinamento: Complete a frase ---
 const fillSentence = document.getElementById("fill-sentence");

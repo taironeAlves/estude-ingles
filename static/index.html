@@ -27,6 +27,7 @@
         <div class="nav-group">
           <span class="nav-group-label">Treinamento</span>
           <button class="nav-item nav-subitem" data-view="listen-type">Ouvir e digitar</button>
+          <button class="nav-item nav-subitem" data-view="listen-sentence">Ouvir e digitar a frase</button>
           <button class="nav-item nav-subitem" data-view="fill-blank">Complete a frase</button>
         </div>
       </nav>
@@ -67,6 +68,7 @@
             <ul>
               <li><strong>Dicionário</strong>: cadastre palavras em inglês com tradução e uma frase de exemplo. O áudio é gerado automaticamente.</li>
               <li><strong>Ouvir e digitar</strong>: ouça o áudio de uma palavra e digite o que você ouviu.</li>
+              <li><strong>Ouvir e digitar a frase</strong>: ouça o áudio de uma frase de exemplo e digite ela por completo.</li>
               <li><strong>Complete a frase</strong>: veja uma frase de exemplo com a palavra oculta e descubra qual é.</li>
             </ul>
           </div>
@@ -132,6 +134,19 @@
         </form>
         <p id="listen-feedback" class="feedback"></p>
         <button id="listen-next" type="button">Nova palavra</button>
+      </section>
+
+      <!-- TREINAMENTO: OUVIR E DIGITAR A FRASE -->
+      <section id="view-listen-sentence" class="view card">
+        <h2>Ouvir e digitar a frase</h2>
+        <p>Ouça o áudio e digite a frase completa em inglês.</p>
+        <audio id="listen-sentence-audio" controls></audio>
+        <form id="listen-sentence-form" class="field">
+          <input id="listen-sentence-input" type="text" autocomplete="off" placeholder="Digite a frase ouvida" />
+          <button type="submit">Verificar</button>
+        </form>
+        <p id="listen-sentence-feedback" class="feedback"></p>
+        <button id="listen-sentence-next" type="button">Nova frase</button>
       </section>
 
       <!-- TREINAMENTO: COMPLETE A FRASE -->

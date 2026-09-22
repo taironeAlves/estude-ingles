@@ -14,9 +14,13 @@ Aplicação web para aprendizado de inglês: dicionário pessoal de palavras com
   de exemplo, gerado sob demanda pelo botão "Gerar áudio IA" (usa o modelo
   [OmniVoice](https://github.com/k2-fsa/OmniVoice) via um Space público no
   Hugging Face — veja a seção [Áudio humanizado](#áudio-humanizado-omnivoice-opcional)).
-- **Treinamento**:
+- **Treinamento** (nenhum repete até passar por todas as opções disponíveis
+  na sessão atual; o ciclo reinicia sozinho depois):
   - *Ouvir e digitar*: toca o áudio de uma palavra aleatória e o usuário
     digita o que ouviu.
+  - *Ouvir e digitar a frase*: toca o áudio de uma frase de exemplo (a
+    gerada pelo botão "Gerar áudio IA") e o usuário digita a frase
+    completa.
   - *Complete a frase*: mostra uma frase de exemplo com a palavra oculta e o
     usuário precisa digitá-la.
 

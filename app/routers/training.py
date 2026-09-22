@@ -19,11 +19,34 @@ def _is_correct(answer: str, word: str) -> bool:
     return answer.strip().lower() == word.strip().lower()
 
 
+def _normalize_sentence(text: str) -> str:
+    text = text.strip().lower()
+    text = re.sub(r"\s+", " ", text)
+    text = text.strip(" .,!?;:\"'")
+    return text
+
+
 def _blank_sentence(sentence: str, word: str) -> Optional[str]:
     pattern = re.compile(rf"\b{re.escape(word)}\b", re.IGNORECASE)
     if not pattern.search(sentence):
         return None
     return pattern.sub("_____", sentence, count=1)
+
+
+def _pick_with_no_repeat(candidates: list, exclude: Optional[str]):
+    """Escolhe um item aleatório fora do conjunto excluído (ids já usados na
+    sessão). Se não sobrar nenhum, reinicia o ciclo usando todos de novo."""
+    excluded_ids = set()
+    if exclude:
+        excluded_ids = {int(part) for part in exclude.split(",") if part.strip().isdigit()}
+
+    remaining = [c for c in candidates if c["id"] not in excluded_ids]
+    cycle_restarted = False
+    if not remaining:
+        remaining = candidates
+        cycle_restarted = True
+
+    return random.choice(remaining), cycle_restarted
 
 
 @router.get("/listen-and-type")
@@ -36,18 +59,7 @@ def new_listen_and_type(exclude: Optional[str] = None):
     if not rows:
         raise HTTPException(400, "Nenhuma palavra com áudio disponível ainda")
 
-    excluded_ids = set()
-    if exclude:
-        excluded_ids = {int(part) for part in exclude.split(",") if part.strip().isdigit()}
-
-    remaining = [row for row in rows if row["id"] not in excluded_ids]
-    cycle_restarted = False
-    if not remaining:
-        # Já passou por todas as palavras disponíveis: reinicia o ciclo.
-        remaining = rows
-        cycle_restarted = True
-
-    chosen = random.choice(remaining)
+    chosen, cycle_restarted = _pick_with_no_repeat(rows, exclude)
     return {
         "id": chosen["id"],
         "audio_url": f"/audio/{chosen['audio_filename']}",
@@ -69,6 +81,46 @@ def check_listen_and_type(payload: CheckIn):
     }
 
 
+@router.get("/listen-and-type-sentence")
+def new_listen_and_type_sentence(exclude: Optional[str] = None):
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id, example_audio_filename FROM words WHERE example_audio_filename IS NOT NULL"
+    ).fetchall()
+    conn.close()
+    if not rows:
+        raise HTTPException(
+            400,
+            "Nenhuma frase com áudio disponível ainda "
+            '(gere pelo botão "Gerar áudio IA" no dicionário)',
+        )
+
+    chosen, cycle_restarted = _pick_with_no_repeat(rows, exclude)
+    return {
+        "id": chosen["id"],
+        "audio_url": f"/audio/{chosen['example_audio_filename']}",
+        "cycle_restarted": cycle_restarted,
+    }
+
+
+@router.post("/listen-and-type-sentence/check")
+def check_listen_and_type_sentence(payload: CheckIn):
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM words WHERE id = ?", (payload.id,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(404, "Palavra não encontrada")
+    correct = _normalize_sentence(payload.answer) == _normalize_sentence(
+        row["example_sentence"] or ""
+    )
+    return {
+        "correct": correct,
+        "word": row["word"],
+        "translation": row["translation"],
+        "example_sentence": row["example_sentence"],
+    }
+
+
 @router.get("/fill-blank")
 def new_fill_blank(exclude: Optional[str] = None):
     conn = get_connection()
@@ -87,18 +139,8 @@ def new_fill_blank(exclude: Optional[str] = None):
     if not candidates:
         raise HTTPException(400, "Nenhuma frase de exemplo disponível ainda")
 
-    excluded_ids = set()
-    if exclude:
-        excluded_ids = {int(part) for part in exclude.split(",") if part.strip().isdigit()}
-
-    remaining = [c for c in candidates if c["id"] not in excluded_ids]
-    cycle_restarted = False
-    if not remaining:
-        # Já passou por todas as frases disponíveis: reinicia o ciclo.
-        remaining = candidates
-        cycle_restarted = True
-
-    chosen = dict(random.choice(remaining))
+    chosen, cycle_restarted = _pick_with_no_repeat(candidates, exclude)
+    chosen = dict(chosen)
     chosen["cycle_restarted"] = cycle_restarted
     return chosen
 
