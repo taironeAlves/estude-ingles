@@ -141,6 +141,15 @@
         <h2>Ouvir e digitar a frase</h2>
         <p>Ouça o áudio e digite a frase completa em inglês.</p>
         <audio id="listen-sentence-audio" controls></audio>
+        <button
+          id="listen-sentence-regen"
+          type="button"
+          class="ai-audio-btn"
+          title="Gera de novo o áudio humanizado desta frase (OmniVoice); usa a voz padrão automaticamente se falhar"
+        >
+          Atualizar voz (IA)
+        </button>
+        <p id="listen-sentence-voice-note" class="msg"></p>
         <form id="listen-sentence-form" class="field">
           <input id="listen-sentence-input" type="text" autocomplete="off" placeholder="Digite a frase ouvida" />
           <button type="submit">Verificar</button>

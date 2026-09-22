@@ -318,6 +318,8 @@ const sentenceForm = document.getElementById("listen-sentence-form");
 const sentenceInput = document.getElementById("listen-sentence-input");
 const sentenceFeedback = document.getElementById("listen-sentence-feedback");
 const sentenceNext = document.getElementById("listen-sentence-next");
+const sentenceRegenBtn = document.getElementById("listen-sentence-regen");
+const sentenceVoiceNote = document.getElementById("listen-sentence-voice-note");
 let currentSentenceId = null;
 let sentenceSolved = false;
 let sentenceCountdownId = null;
@@ -336,6 +338,7 @@ async function loadSentenceChallenge() {
   sentenceSolved = false;
   sentenceFeedback.textContent = "";
   sentenceFeedback.className = "feedback";
+  sentenceVoiceNote.textContent = "";
   sentenceInput.value = "";
   const exclude = sentenceUsedIds.size ? `?exclude=${[...sentenceUsedIds].join(",")}` : "";
   const res = await fetch(`/api/training/listen-and-type-sentence${exclude}`);
@@ -391,6 +394,36 @@ sentenceForm.addEventListener("submit", async (e) => {
 });
 
 sentenceNext.addEventListener("click", loadSentenceChallenge);
+
+sentenceRegenBtn.addEventListener("click", async () => {
+  if (currentSentenceId === null) return;
+  const originalText = sentenceRegenBtn.textContent;
+  sentenceRegenBtn.disabled = true;
+  sentenceRegenBtn.textContent = "Gerando (pode levar até 1 min)...";
+  sentenceVoiceNote.textContent = "";
+
+  try {
+    const res = await fetch(`/api/words/${currentSentenceId}/example-audio`, {
+      method: "POST",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      sentenceVoiceNote.textContent = data.detail || "Erro ao gerar áudio.";
+    } else {
+      sentenceAudio.src = `/audio/${data.example_audio_filename}`;
+      sentenceAudio.play().catch(() => {});
+      sentenceVoiceNote.textContent =
+        data.example_audio_source === "edge-tts"
+          ? "Atualizado com voz padrão (IA indisponível no momento)."
+          : "Áudio humanizado atualizado!";
+    }
+  } catch (err) {
+    sentenceVoiceNote.textContent = "Erro de conexão ao gerar áudio.";
+  } finally {
+    sentenceRegenBtn.disabled = false;
+    sentenceRegenBtn.textContent = originalText;
+  }
+});
 
 // --- Treinamento: Complete a frase ---
 const fillSentence = document.getElementById("fill-sentence");
