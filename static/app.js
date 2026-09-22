@@ -291,7 +291,9 @@ listenForm.addEventListener("submit", async (e) => {
     listenSolved = true;
     listenFeedback.className = "feedback correct";
     let secondsLeft = 3;
-    listenFeedback.textContent = `Correto! Indo para a próxima em ${secondsLeft} segundos...`;
+    const buildCorrectMsg = () =>
+      `Correto! ${data.word} (${data.translation}). Indo para a próxima em ${secondsLeft} segundos...`;
+    listenFeedback.textContent = buildCorrectMsg();
     listenCountdownId = setInterval(() => {
       secondsLeft -= 1;
       if (secondsLeft <= 0) {
@@ -299,7 +301,7 @@ listenForm.addEventListener("submit", async (e) => {
         loadListenChallenge();
         return;
       }
-      listenFeedback.textContent = `Correto! Indo para a próxima em ${secondsLeft} segundos...`;
+      listenFeedback.textContent = buildCorrectMsg();
     }, 1000);
   } else {
     listenFeedback.textContent = `Errado. Resposta certa: ${data.word} (${data.translation})`;
