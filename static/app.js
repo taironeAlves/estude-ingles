@@ -320,11 +320,19 @@ const sentenceFeedback = document.getElementById("listen-sentence-feedback");
 const sentenceNext = document.getElementById("listen-sentence-next");
 const sentenceRegenBtn = document.getElementById("listen-sentence-regen");
 const sentenceVoiceNote = document.getElementById("listen-sentence-voice-note");
+const sentenceShowTranslation = document.getElementById("listen-sentence-show-translation");
+const sentenceTranslationNote = document.getElementById("listen-sentence-translation-note");
 let currentSentenceId = null;
 let sentenceSolved = false;
 let sentenceCountdownId = null;
 // Frases já sorteadas nesta sessão (não repete até passar por todas).
 let sentenceUsedIds = new Set();
+
+const SHOW_TRANSLATION_KEY = "estude-ingles-sentence-show-translation";
+sentenceShowTranslation.checked = localStorage.getItem(SHOW_TRANSLATION_KEY) === "true";
+sentenceShowTranslation.addEventListener("change", () => {
+  localStorage.setItem(SHOW_TRANSLATION_KEY, sentenceShowTranslation.checked);
+});
 
 function clearSentenceCountdown() {
   if (sentenceCountdownId !== null) {
@@ -339,6 +347,7 @@ async function loadSentenceChallenge() {
   sentenceFeedback.textContent = "";
   sentenceFeedback.className = "feedback";
   sentenceVoiceNote.textContent = "";
+  sentenceTranslationNote.textContent = "";
   sentenceInput.value = "";
   const exclude = sentenceUsedIds.size ? `?exclude=${[...sentenceUsedIds].join(",")}` : "";
   const res = await fetch(`/api/training/listen-and-type-sentence${exclude}`);
@@ -371,6 +380,9 @@ sentenceForm.addEventListener("submit", async (e) => {
     body: JSON.stringify({ id: currentSentenceId, answer: sentenceInput.value }),
   });
   const data = await res.json();
+  sentenceTranslationNote.textContent = sentenceShowTranslation.checked
+    ? `Palavra-chave: ${data.word} → ${data.translation}`
+    : "";
   if (data.correct) {
     sentenceSolved = true;
     sentenceFeedback.className = "feedback correct";

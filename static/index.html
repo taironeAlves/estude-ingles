@@ -150,11 +150,16 @@
           Atualizar voz (IA)
         </button>
         <p id="listen-sentence-voice-note" class="msg"></p>
+        <label class="checkbox-label">
+          <input type="checkbox" id="listen-sentence-show-translation" />
+          Mostrar tradução da palavra-chave ao acertar/errar
+        </label>
         <form id="listen-sentence-form" class="field">
           <input id="listen-sentence-input" type="text" autocomplete="off" placeholder="Digite a frase ouvida" />
           <button type="submit">Verificar</button>
         </form>
         <p id="listen-sentence-feedback" class="feedback"></p>
+        <p id="listen-sentence-translation-note" class="msg"></p>
         <button id="listen-sentence-next" type="button">Nova frase</button>
       </section>
 

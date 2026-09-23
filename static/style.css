@@ -392,6 +392,20 @@ audio { width: 100%; margin: 0.75rem 0; }
   margin-top: 0.2rem;
 }
 
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.5rem 0;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+}
+
 /* Small screens: collapse sidebar to a top bar */
 @media (max-width: 720px) {
   .app-layout { flex-direction: column; }
