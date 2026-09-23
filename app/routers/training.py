@@ -118,6 +118,7 @@ def check_listen_and_type_sentence(payload: CheckIn):
         "word": row["word"],
         "translation": row["translation"],
         "example_sentence": row["example_sentence"],
+        "example_translation": row["example_translation"],
     }
 
 

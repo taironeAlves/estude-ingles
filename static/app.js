@@ -68,6 +68,7 @@ const wordFormMsg = document.getElementById("word-form-msg");
 const wordInput = document.getElementById("word-input");
 const translationInput = document.getElementById("translation-input");
 const exampleInput = document.getElementById("example-input");
+const exampleTranslationInput = document.getElementById("example-translation-input");
 const wordsTbody = document.getElementById("words-tbody");
 const wordsEmpty = document.getElementById("words-empty");
 const wordsTitle = document.getElementById("words-title");
@@ -94,6 +95,7 @@ function enterEditMode(w) {
   wordInput.value = w.word;
   translationInput.value = w.translation;
   exampleInput.value = w.example_sentence || "";
+  exampleTranslationInput.value = w.example_translation || "";
   wordInput.focus();
 }
 
@@ -127,6 +129,9 @@ async function loadWords(query) {
 
     let exampleCell = escapeHtml(w.example_sentence || "");
     if (w.example_sentence) {
+      if (w.example_translation) {
+        exampleCell += `<span class="audio-source-note">${escapeHtml(w.example_translation)}</span>`;
+      }
       if (w.example_audio_filename) {
         exampleCell += `<audio controls src="/audio/${w.example_audio_filename}"></audio>`;
         if (w.example_audio_source === "edge-tts") {
@@ -200,13 +205,14 @@ wordForm.addEventListener("submit", async (e) => {
   const word = wordInput.value.trim();
   const translation = translationInput.value.trim();
   const example_sentence = exampleInput.value.trim() || null;
+  const example_translation = exampleTranslationInput.value.trim() || null;
   const isEditing = editingId !== null;
 
   wordFormMsg.textContent = "Salvando (gerando áudio se necessário)...";
   const res = await fetch(isEditing ? `/api/words/${editingId}` : "/api/words", {
     method: isEditing ? "PUT" : "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word, translation, example_sentence }),
+    body: JSON.stringify({ word, translation, example_sentence, example_translation }),
   });
 
   if (!res.ok) {
@@ -381,7 +387,9 @@ sentenceForm.addEventListener("submit", async (e) => {
   });
   const data = await res.json();
   sentenceTranslationNote.textContent = sentenceShowTranslation.checked
-    ? `Palavra-chave: ${data.word} → ${data.translation}`
+    ? data.example_translation
+      ? `Tradução: ${data.example_translation}`
+      : `Palavra-chave: ${data.word} → ${data.translation}`
     : "";
   if (data.correct) {
     sentenceSolved = true;

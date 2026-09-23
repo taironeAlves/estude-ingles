@@ -19,6 +19,7 @@ class WordIn(BaseModel):
     word: str
     translation: str
     example_sentence: Optional[str] = None
+    example_translation: Optional[str] = None
 
 
 class WordOut(BaseModel):
@@ -26,6 +27,7 @@ class WordOut(BaseModel):
     word: str
     translation: str
     example_sentence: Optional[str] = None
+    example_translation: Optional[str] = None
     audio_filename: Optional[str] = None
     example_audio_filename: Optional[str] = None
     example_audio_source: Optional[str] = None
@@ -68,7 +70,7 @@ async def _sync_audio(word_id: int, word: str, audio_filename: Optional[str]) ->
     return new_filename
 
 
-def _clean_payload(payload: WordIn) -> tuple[str, str, Optional[str]]:
+def _clean_payload(payload: WordIn) -> tuple[str, str, Optional[str], Optional[str]]:
     word = payload.word.strip()
     if not word:
         raise HTTPException(400, "A palavra não pode ser vazia")
@@ -76,12 +78,15 @@ def _clean_payload(payload: WordIn) -> tuple[str, str, Optional[str]]:
     if not translation:
         raise HTTPException(400, "A tradução não pode ser vazia")
     example = payload.example_sentence.strip() if payload.example_sentence else None
-    return word, translation, example
+    example_translation = (
+        payload.example_translation.strip() if payload.example_translation else None
+    )
+    return word, translation, example, example_translation
 
 
 @router.post("", response_model=WordOut)
 async def add_word(payload: WordIn):
-    word, translation, example = _clean_payload(payload)
+    word, translation, example, example_translation = _clean_payload(payload)
 
     conn = get_connection()
     existing = conn.execute(
@@ -92,15 +97,22 @@ async def add_word(payload: WordIn):
         word_id = existing["id"]
         new_translation = translation or existing["translation"]
         new_example = example if example is not None else existing["example_sentence"]
+        new_example_translation = (
+            example_translation
+            if example_translation is not None
+            else existing["example_translation"]
+        )
         conn.execute(
-            "UPDATE words SET translation = ?, example_sentence = ? WHERE id = ?",
-            (new_translation, new_example, word_id),
+            "UPDATE words SET translation = ?, example_sentence = ?, example_translation = ? "
+            "WHERE id = ?",
+            (new_translation, new_example, new_example_translation, word_id),
         )
         conn.commit()
     else:
         cursor = conn.execute(
-            "INSERT INTO words (word, translation, example_sentence, audio_filename) VALUES (?, ?, ?, NULL)",
-            (word, translation, example),
+            "INSERT INTO words (word, translation, example_sentence, example_translation, "
+            "audio_filename) VALUES (?, ?, ?, ?, NULL)",
+            (word, translation, example, example_translation),
         )
         conn.commit()
         word_id = cursor.lastrowid
@@ -115,7 +127,7 @@ async def add_word(payload: WordIn):
 
 @router.put("/{word_id}", response_model=WordOut)
 async def update_word(word_id: int, payload: WordIn):
-    word, translation, example = _clean_payload(payload)
+    word, translation, example, example_translation = _clean_payload(payload)
 
     conn = get_connection()
     existing = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
@@ -149,8 +161,16 @@ async def update_word(word_id: int, payload: WordIn):
 
     conn.execute(
         "UPDATE words SET word = ?, translation = ?, example_sentence = ?, "
-        "audio_filename = ?, example_audio_filename = ? WHERE id = ?",
-        (word, translation, example, audio_filename, example_audio_filename, word_id),
+        "example_translation = ?, audio_filename = ?, example_audio_filename = ? WHERE id = ?",
+        (
+            word,
+            translation,
+            example,
+            example_translation,
+            audio_filename,
+            example_audio_filename,
+            word_id,
+        ),
     )
     conn.commit()
     row = conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()

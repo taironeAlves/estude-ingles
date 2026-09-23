@@ -32,6 +32,8 @@ def init_db() -> None:
     if "example_audio_source" not in existing_columns:
         # "omnivoice" (humanizado) ou "edge-tts" (fallback quando o OmniVoice falha)
         conn.execute("ALTER TABLE words ADD COLUMN example_audio_source TEXT")
+    if "example_translation" not in existing_columns:
+        conn.execute("ALTER TABLE words ADD COLUMN example_translation TEXT")
 
     conn.commit()
     conn.close()
